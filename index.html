@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kosova Transit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      background: #f0f4f9;
+      color: #333;
+      overflow: hidden;
+    }
+    #map {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 100vh;
+      z-index: 1000;
+    }
+    #search-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 360px;
+      max-width: 90vw;
+      z-index: 1450;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+    #search {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 1rem;
+      border: none;
+      outline: none;
+      font-weight: 500;
+      color: #111;
+    }
+    #dropdown {
+      max-height: 260px;
+      overflow-y: auto;
+      border-top: 1px solid #eee;
+      display: none;
+      font-size: 0.9rem;
+    }
+    .dropdown-item {
+      padding: 10px 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .dropdown-item:hover {
+      background-color: #0077cc;
+      color: white;
+    }
+    .dropdown-item .route-icon {
+      cursor: pointer;
+      font-size: 1.1rem;
+      margin-left: 10px;
+      color: #0077cc;
+    }
+    #locate-btn {
+      position: fixed;
+      bottom: 92px;
+      right: 32px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      border: none;
+      width: 56px;
+      height: 56px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1600;
+      transition: background 0.2s;
+    }
+    #locate-btn:hover {
+      background-color: #0077cc;
+    }
+    #locate-btn img {
+      width: 28px;
+      height: 28px;
+      pointer-events: none;
+    }
+    .route-options {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 18px 24px;
+      border-radius: 18px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+      z-index: 1700;
+      min-width: 0;
+      width: auto;
+      max-width: 98vw;
+      display: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border: 1.5px solid #e6eef7;
+    }
+    .route-options h4 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 1.13rem;
+      color: #0058a3;
+      letter-spacing: 0.01em;
+      font-weight: 600;
+      border-bottom: 1.5px solid #e6eef7;
+      padding-bottom: 8px;
+    }
+    .route-type-list {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      margin-bottom: 8px;
+      width: auto;
+      justify-content: center;
+    }
+    .route-option {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 14px 22px;
+      background: #f7fafd;
+      border-radius: 14px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: background 0.18s, border 0.18s, box-shadow 0.18s;
+      position: relative;
+      font-size: 1.04em;
+      color: #0058a3;
+      font-weight: 500;
+      min-width: 120px;
+      max-width: 180px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+    .route-option.selected, .route-option:hover {
+      background: #e6f1ff;
+      border: 1.5px solid #0077cc;
+      color: #0077cc;
+      box-shadow: 0 2px 10px rgba(0,119,204,0.07);
+    }
+    .route-option.selected::after {
+      content: "✓";
+      color: #0077cc;
+      font-size: 1.2em;
+      font-weight: bold;
+      position: absolute;
+      right: 14px;
+      top: 12px;
+      background: #fff;
+      border-radius: 50%;
+      padding: 2px 6px;
+      box-shadow: 0 1px 4px rgba(0,119,204,0.07);
+    }
+    .route-type-icon {
+      font-size: 1.3em;
+      margin-right: 2px;
+    }
+    .route-type-label {
+      font-weight: 600;
+      font-size: 1.07em;
+      color: inherit;
+    }
+    .route-type-desc {
+      font-size: 0.97em;
+      color: #5a7ca7;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+    .start-route {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px;
+      border: none;
+      background: #0091ff;
+      color: white;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.08em;
+      letter-spacing: 0.01em;
+      box-shadow: 0 2px 8px rgba(0,119,204,0.07);
+      transition: background 0.18s;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .start-route:hover {
+      background: #0077cc;
+    }
+    #routeInfoBox {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 20px 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+      z-index: 1800;
+      max-width: 350px;
+      width: 90%;
+      display: none;
+      font-size: 1rem;
+      color: #333;
+      text-align: center;
+    }
+    #routeInfoBox b {
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    #routeInfoBox .info-row {
+      margin: 8px 0;
+    }
+    #endRouteBtn {
+      margin-top: 14px;
+      padding: 12px;
+      width: 100%;
+      background: #d9534f;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
+    }
+    #endRouteBtn:hover {
+      background-color: #c9302c;
+    }
+    .custom-attribution {
+      position: fixed;
+      right: 12px;
+      bottom: 8px;
+      background: rgba(255,255,255,0.85);
+      color: #333;
+      font-size: 1.05rem;
+      font-family: 'Poppins', sans-serif;
+      padding: 4px 16px 4px 8px;
+      border-radius: 8px;
+      z-index: 2000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      user-select: text;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .custom-attribution img {
+      height: 28px;
+      width: auto;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      background: #fff;
+      padding: 2px;
+      display: inline-block;
+    }
+    @media (max-width: 800px) {
+      .route-options {
+        max-width: 99vw;
+        width: auto;
+        left: 0;
+        right: 0;
+        transform: none;
+        border-radius: 10px;
+        padding: 12px 2vw;
+      }
+      .route-type-list {
+        gap: 6px;
+      }
+      .route-option {
+        min-width: 90px;
+        max-width: 120px;
+        padding: 10px 8px;
+        font-size: 0.97em;
+      }
+      .start-route {
+        font-size: 0.97em;
+        padding: 10px 8px;
+        height: 38px;
+      }
+    }
+    @media (max-width: 600px) {
+      #search-container {
+        width: 98vw;
+        left: 1vw;
+        transform: none;
+        top: 10px;
+        border-radius: 8px;
+        padding: 0;
+      }
+      #search {
+        padding: 12px 10px;
+        font-size: 1rem;
+      }
+      .route-options, #routeInfoBox {
+        left: 2vw;
+        transform: none;
+        width: auto;
+        max-width: 98vw;
+        padding: 10px 2vw;
+        border-radius: 10px;
+      }
+      #locate-btn {
+        right: 16px;
+        bottom: 80px;
+        width: 48px;
+        height: 48px;
+      }
+      #locate-btn img {
+        width: 22px;
+        height: 22px;
+      }
+      .custom-attribution {
+        right: 8px;
+        bottom: 8px;
+        font-size: 0.98rem;
+        padding: 4px 10px 4px 6px;
+        border-radius: 6px;
+        gap: 6px;
+      }
+      .custom-attribution img {
+        height: 22px;
+        padding: 1px;
+        border-radius: 4px;
+      }
+      .route-type-list {
+        gap: 4px;
+      }
+      .route-option {
+        min-width: 80px;
+        max-width: 110px;
+        padding: 8px 4px;
+        font-size: 0.96em;
+      }
+      .start-route {
+        font-size: 0.96em;
+        padding: 8px 4px;
+        height: 34px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <section id="search-container">
+    <input type="search" id="search" placeholder="Search city, street, place..." autocomplete="off" />
+    <div id="dropdown"></div>
+  </section>
+  <button id="locate-btn">
+    <img src="https://cdn-icons-png.flaticon.com/512/61/61168.png" alt="Locate Me" />
+  </button>
+  <div class="route-options" id="routeOptions">
+    <h4>
+      <span class="route-icon-main">🛣️</span>
+      <span class="route-title-text">Select Route Type</span>
+    </h4>
+    <div class="route-type-list">
+      <div class="route-option" data-type="shortest">
+        <span class="route-type-icon">📏</span>
+        <span class="route-type-label">Shortest Route</span>
+        <span class="route-type-desc">Minimize distance</span>
+      </div>
+      <div class="route-option selected" data-type="fastest">
+        <span class="route-type-icon">⚡</span>
+        <span class="route-type-label">Fastest Route</span>
+        <span class="route-type-desc">Minimize time</span>
+      </div>
+      <div class="route-option" data-type="scenic">
+        <span class="route-type-icon">🌳</span>
+        <span class="route-type-label">Scenic Route</span>
+        <span class="route-type-desc">Enjoy the view</span>
+      </div>
+    </div>
+    <button class="start-route" id="startRouteBtn">Start Route</button>
+  </div>
+  <div id="routeInfoBox">
+    <div class="info-row"><b>Distance:</b> <span id="routeDistance">0 km</span></div>
+    <div class="info-row"><b>Duration:</b> <span id="routeDuration">0 min</span></div>
+    <div class="info-row"><b>Next Street:</b> <span id="routeNextStreet">-</span></div>
+    <button id="endRouteBtn">End Route</button>
+  </div>
+  <div class="custom-attribution">
+    <img src="logo.png" alt="Kosova Transit Logo" />
+    Kosova Transit
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <script>
+    const searchInput = document.getElementById('search');
+    const dropdown = document.getElementById('dropdown');
+    const routeOptions = document.getElementById('routeOptions');
+    const startRouteBtn = document.getElementById('startRouteBtn');
+    const locateBtn = document.getElementById('locate-btn');
+    const routeInfoBox = document.getElementById('routeInfoBox');
+    const routeDistance = document.getElementById('routeDistance');
+    const routeDuration = document.getElementById('routeDuration');
+    const routeNextStreet = document.getElementById('routeNextStreet');
+    const endRouteBtn = document.getElementById('endRouteBtn');
+
+    const map = L.map('map', {
+      attributionControl: false
+    }).setView([42.6629, 21.1655], 10);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: ''
+    }).addTo(map);
+
+    let userLocation = null;
+    let selectedDestination = null;
+    let routingControl = null;
+    let currentRouteType = 'fastest';
+
+    const routeColors = {
+      fastest: '#0077ff',
+      shortest: '#28a745',
+      scenic: '#eab308'
+    };
+
+    const destinations = [
+      { name: "Pristina", lat: 42.6629, lon: 21.1655, street: "Rruga Prishtinë" },
+      { name: "Prizren", lat: 42.2167, lon: 20.7414, street: "Rruga Bulevardi" },
+      { name: "Peja", lat: 42.6697, lon: 20.3100, street: "Rruga Pejës" },
+      { name: "Gjakova", lat: 42.3829, lon: 20.4303, street: "Rruga Dëshmorët" },
+      { name: "Mitrovica", lat: 42.8833, lon: 20.8667, street: "Rruga Mitrovicë" }
+    ];
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      dropdown.innerHTML = '';
+      if (!query) {
+        dropdown.style.display = 'none';
+        return;
+      }
+      const filtered = destinations.filter(dest => dest.name.toLowerCase().includes(query));
+      if (filtered.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+      }
+      filtered.forEach(dest => {
+        const item = document.createElement('div');
+        item.classList.add('dropdown-item');
+        item.textContent = dest.name;
+        const icon = document.createElement('span');
+        icon.classList.add('route-icon');
+        icon.textContent = '🛣️';
+        icon.title = "Select as destination";
+        icon.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectedDestination = dest;
+          searchInput.value = dest.name;
+          dropdown.style.display = 'none';
+          setDefaultRouteType();
+          showRouteOptions();
+          if (userLocation) {
+            startRouting(userLocation, selectedDestination);
+            document.getElementById('search-container').style.display = 'none';
+          }
+        });
+        item.addEventListener('click', () => {
+          selectedDestination = dest;
+          searchInput.value = dest.name;
+          dropdown.style.display = 'none';
+          setDefaultRouteType();
+          showRouteOptions();
+          if (userLocation) {
+            startRouting(userLocation, selectedDestination);
+            document.getElementById('search-container').style.display = 'none';
+          }
+        });
+        item.appendChild(icon);
+        dropdown.appendChild(item);
+      });
+      dropdown.style.display = 'block';
+    });
+
+    document.addEventListener('click', e => {
+      if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = 'none';
+      }
+    });
+
+    function setDefaultRouteType() {
+      currentRouteType = 'fastest';
+      routeOptions.querySelectorAll('.route-option').forEach(opt => {
+        if (opt.dataset.type === 'fastest') {
+          opt.classList.add('selected');
+        } else {
+          opt.classList.remove('selected');
+        }
+      });
+    }
+
+    function showRouteOptions() {
+      routeOptions.style.display = 'flex';
+    }
+    function hideRouteOptions() {
+      routeOptions.style.display = 'none';
+    }
+
+    routeOptions.style.display = 'none';
+
+    routeOptions.querySelectorAll('.route-option').forEach(el => {
+      el.addEventListener('click', () => {
+        routeOptions.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('selected'));
+        el.classList.add('selected');
+        currentRouteType = el.dataset.type;
+        if (userLocation && selectedDestination) {
+          startRouting(userLocation, selectedDestination);
+        }
+      });
+    });
+
+    startRouteBtn.addEventListener('click', () => {
+      if (!selectedDestination) {
+        alert('Please select a destination first!');
+        return;
+      }
+      if (!userLocation) {
+        alert('User location not found yet!');
+        return;
+      }
+      startRouting(userLocation, selectedDestination);
+      hideRouteOptions();
+      document.getElementById('search-container').style.display = 'none';
+    });
+
+    locateBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported by your browser");
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userLocation = {
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude
+          };
+          map.setView([userLocation.lat, userLocation.lon], 14);
+          if (userMarker) userMarker.setLatLng([userLocation.lat, userLocation.lon]);
+          else {
+            userMarker = L.circleMarker([userLocation.lat, userLocation.lon], {
+              radius: 6,
+              color: '#0077ff',
+              fillColor: '#3399ff',
+              fillOpacity: 0.9,
+              weight: 2
+            }).addTo(map).bindPopup('Your Location').openPopup();
+          }
+          if (selectedDestination) {
+            startRouting(userLocation, selectedDestination);
+            document.getElementById('search-container').style.display = 'none';
+          }
+        },
+        () => alert("Unable to retrieve your location")
+      );
+    });
+
+    let userMarker = null;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          map.setView([userLocation.lat, userLocation.lon], 14);
+          userMarker = L.circleMarker([userLocation.lat, userLocation.lon], {
+            radius: 6,
+            color: '#0077ff',
+            fillColor: '#3399ff',
+            fillOpacity: 0.9,
+            weight: 2
+          }).addTo(map).bindPopup('Your Location').openPopup();
+        },
+        () => {
+          map.setView([42.6629, 21.1655], 10);
+        }
+      );
+    } else {
+      map.setView([42.6629, 21.1655], 10);
+    }
+
+    function startRouting(start, destination) {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+      }
+
+      let router;
+      let lineColor = routeColors[currentRouteType] || '#0077ff';
+
+      if (currentRouteType === 'fastest') {
+        router = L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1',
+          profile: 'car'
+        });
+      } else if (currentRouteType === 'shortest') {
+        router = L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1',
+          profile: 'car',
+          routingOptions: {
+            overview: 'full',
+            alternatives: false,
+            steps: true,
+            geometries: 'polyline'
+          },
+          useShortestOption: true
+        });
+      } else if (currentRouteType === 'scenic') {
+        router = L.Routing.osrmv1({
+          serviceUrl: 'https://routing.openstreetmap.de/routed-bike/route/v1',
+          profile: 'bike'
+        });
+      } else {
+        router = L.Routing.osrmv1({
+          serviceUrl: 'https://router.project-osrm.org/route/v1',
+          profile: 'car'
+        });
+      }
+
+      routingControl = L.Routing.control({
+        waypoints: [
+          L.latLng(start.lat, start.lon),
+          L.latLng(destination.lat, destination.lon)
+        ],
+        routeWhileDragging: false,
+        router: router,
+        lineOptions: {
+          styles: [{color: lineColor, weight: 7, opacity: 0.85}]
+        },
+        createMarker: function(i, wp) {
+          if (i === 0) {
+            return L.marker(wp.latLng, { draggable: false }).bindPopup('Start Point').openPopup();
+          } else if (i === 1) {
+            return L.marker(wp.latLng, { draggable: false }).bindPopup('Destination').openPopup();
+          }
+        }
+      }).addTo(map);
+
+      routeInfoBox.style.display = 'block';
+
+      routingControl.on('routesfound', function(e) {
+        const routes = e.routes;
+        if (routes.length > 0) {
+          const summary = routes[0].summary;
+          const totalDistanceKm = (summary.totalDistance / 1000).toFixed(2);
+          const totalTimeMin = Math.ceil(summary.totalTime / 60);
+          routeDistance.textContent = `${totalDistanceKm} km`;
+          routeDuration.textContent = `${totalTimeMin} min`;
+          let nextStreet = '-';
+          if (routes[0].instructions && routes[0].instructions.length > 0) {
+            for (const instr of routes[0].instructions) {
+              if (instr.text && instr.text.length > 0) {
+                nextStreet = instr.text;
+                break;
+              }
+            }
+          }
+          routeNextStreet.textContent = nextStreet;
+        }
+      });
+
+      routingControl.on('routeselected', function(e) {
+      });
+    }
+
+    endRouteBtn.addEventListener('click', () => {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+      }
+      routeInfoBox.style.display = 'none';
+      routeOptions.style.display = 'none';
+      document.getElementById('search-container').style.display = 'block';
+      searchInput.value = '';
+      selectedDestination = null;
+      dropdown.style.display = 'none';
+    });
+
+    setDefaultRouteType();
+    hideRouteOptions();
+
+    function tryAutoRoute() {
+      if (userLocation && selectedDestination) {
+        startRouting(userLocation, selectedDestination);
+        document.getElementById('search-container').style.display = 'none';
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+          map.setView([userLocation.lat, userLocation.lon], 14);
+          userMarker = L.circleMarker([userLocation.lat, userLocation.lon], {
+            radius: 6,
+            color: '#0077ff',
+            fillColor: '#3399ff',
+            fillOpacity: 0.9,
+            weight: 2
+          }).addTo(map).bindPopup('Your Location').openPopup();
+          tryAutoRoute();
+        },
+        () => {
+          map.setView([42.6629, 21.1655], 10);
+        }
+      );
+    }
+
+  </script>
+</body>
+</html>
