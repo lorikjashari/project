@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kosovo Transit - Transport Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="container header-content">
+                <div class="logo-container">
+                    <div class="logo-icon car-mode">
+                        <img src="img/logo.png" alt="Kosovo Transit Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                    </div>
+                    <h1 class="logo-text car-mode">Kosovo Transit</h1>
+                </div>
+
+                <div class="header-actions">
+                    <button class="icon-button" id="searchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="icon-button" id="userButton">
+                        <i class="fas fa-user"></i>
+                    </button>
+                    <button class="icon-button" id="menuButton">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="welcome-section animate-in">
+                    <h2 class="welcome-title">Hello there! 👋</h2>
+                    <p class="welcome-subtitle">Your current location: <span id="currentLocation">Pristina Center</span></p>
+                </div>
+
+                <div class="mode-selector">
+                    <button class="mode-button active" data-mode="car">
+                        <i class="fas fa-car"></i>
+                        <span>Car Navigation</span>
+                    </button>
+                    <button class="mode-button" data-mode="public">
+                        <i class="fas fa-bus"></i>
+                        <span>Public Transport</span>
+                    </button>
+                    <div class="mode-indicator"></div>
+                </div>
+
+                <div class="search-card">
+                    <div class="search-input-container">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" placeholder="Where do you want to go?" class="search-input">
+                    </div>
+                    <button class="find-route-button car-mode">Find Route</button>
+                </div>
+
+                <!-- Saved locations section (only for logged in users) -->
+                <div class="saved-locations-section" id="savedLocationsSection" style="display: none;">
+                    <h2 class="section-title">Your Places</h2>
+                    <div class="locations-grid three-columns">
+                        <div class="quick-destination" data-location="Home, Sunny Hill, Pristina">
+                            <div class="destination-content">
+                                <div class="destination-icon car-mode">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="destination-info">
+                                    <span class="destination-name">Home</span>
+                                    <span class="destination-address">Sunny Hill, Pristina</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quick-destination" data-location="Work, Innovation Center, Pristina">
+                            <div class="destination-content">
+                                <div class="destination-icon car-mode">
+                                    <i class="fas fa-briefcase"></i>
+                                </div>
+                                <div class="destination-info">
+                                    <span class="destination-name">Work</span>
+                                    <span class="destination-address">Innovation Center, Pristina</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quick-destination" data-location="University of Pristina">
+                            <div class="destination-content">
+                                <div class="destination-icon car-mode">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </div>
+                                <div class="destination-info">
+                                    <span class="destination-name">University</span>
+                                    <span class="destination-address">University of Pristina</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Popular destinations for all users -->
+                <div class="popular-destinations-section">
+                    <h2 class="section-title">Popular Destinations</h2>
+                    <div class="locations-grid">
+                        <div class="quick-destination" data-location="Pristina International Airport">
+                            <div class="destination-content">
+                                <div class="destination-icon car-mode">
+                                    <i class="fas fa-plane"></i>
+                                </div>
+                                <div class="destination-info">
+                                    <span class="destination-name">Airport</span>
+                                    <span class="destination-address">Pristina International Airport</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quick-destination" data-location="University Clinical Center">
+                            <div class="destination-content">
+                                <div class="destination-icon car-mode">
+                                    <i class="fas fa-hospital"></i>
+                                </div>
+                                <div class="destination-info">
+                                    <span class="destination-name">Hospital</span>
+                                    <span class="destination-address">University Clinical Center</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quick-destination" data-location="Pristina Mall">
+                            <div class="destination-content">
+                                <div class="destination-icon car-mode">
+                                    <i class="fas fa-shopping-bag"></i>
+                                </div>
+                                <div class="destination-info">
+                                    <span class="destination-name">Shopping Mall</span>
+                                    <span class="destination-address">Pristina Mall</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quick-destination" data-location="Main Bus Station">
+                            <div class="destination-content">
+                                <div class="destination-icon car-mode">
+                                    <i class="fas fa-bus"></i>
+                                </div>
+                                <div class="destination-info">
+                                    <span class="destination-name">Bus Station</span>
+                                    <span class="destination-address">Main Bus Station</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Section -->
+                <div class="payment-section">
+                    <h2 class="section-title">Buy Tickets</h2>
+                    <div class="ticket-options">
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <i class="fas fa-ticket-alt"></i>
+                                <h3>Single Ride</h3>
+                            </div>
+                            <div class="ticket-price">€0.50</div>
+                            <p class="ticket-description">Valid for one journey within city limits</p>
+                            <button class="buy-ticket-button car-mode">Buy Ticket</button>
+                        </div>
+
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <i class="fas fa-calendar-day"></i>
+                                <h3>Day Pass</h3>
+                            </div>
+                            <div class="ticket-price">€2.00</div>
+                            <p class="ticket-description">Unlimited rides for 24 hours</p>
+                            <button class="buy-ticket-button car-mode">Buy Ticket</button>
+                        </div>
+
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <i class="fas fa-calendar-week"></i>
+                                <h3>Weekly Pass</h3>
+                            </div>
+                            <div class="ticket-price">€10.00</div>
+                            <p class="ticket-description">Unlimited rides for 7 days</p>
+                            <button class="buy-ticket-button car-mode">Buy Ticket</button>
+                        </div>
+
+                        <div class="ticket-card">
+                            <div class="ticket-header">
+                                <i class="fas fa-calendar-alt"></i>
+                                <h3>Monthly Pass</h3>
+                            </div>
+                            <div class="ticket-price">€35.00</div>
+                            <p class="ticket-description">Unlimited rides for 30 days</p>
+                            <button class="buy-ticket-button car-mode">Buy Ticket</button>
+                        </div>
+                    </div>
+
+                    <div class="payment-info">
+                        <h3>Payment Methods</h3>
+                        <div class="payment-methods">
+                            <div class="payment-method">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Credit Card</span>
+                            </div>
+                            <div class="payment-method">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span>Mobile Payment</span>
+                            </div>
+                            <div class="payment-method">
+                                <i class="fas fa-wallet"></i>
+                                <span>Cash</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick access to other features -->
+                <div class="quick-access-section">
+                    <div class="quick-access-grid">
+                        <a href="car/traffic-map.html" class="feature-card" id="mapLink">
+                            <div class="feature-icon car-mode">
+                                <i class="fas fa-map"></i>
+                            </div>
+                            <h3 class="feature-title">Live Map</h3>
+                            <p class="feature-description">View traffic conditions</p>
+                        </a>
+                        <a href="car/traffic-news.html" class="feature-card" id="newsLink">
+                            <div class="feature-icon car-mode">
+                                <i class="fas fa-newspaper"></i>
+                            </div>
+                            <h3 class="feature-title">Traffic News</h3>
+                            <p class="feature-description">Latest traffic updates</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Guest user prompt -->
+                <div class="guest-prompt-section" id="guestPromptSection">
+                    <div class="guest-prompt-card car-mode">
+                        <h3 class="prompt-title">Save your frequent destinations</h3>
+                        <p class="prompt-description">Sign up to save your home, work, and other frequent destinations for quicker access.</p>
+                        <div class="prompt-actions">
+                            <button class="guest-button car-mode">Continue as Guest</button>
+                            <button class="signup-button car-mode">Sign Up</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <div class="container">
+                <nav class="footer-nav">
+                    <a href="index.html" class="footer-nav-item active">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="map.html" class="footer-nav-item" id="footerMapLink">
+                        <i class="fas fa-map"></i>
+                        <span>Map</span>
+                    </a>
+                    <a href="routes.html" class="footer-nav-item" id="footerRoutesLink">
+                        <i class="fas fa-list"></i>
+                        <span>Routes</span>
+                    </a>
+                    <a href="#" class="footer-nav-item" id="profileLink">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </nav>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-container">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title car-mode">Welcome Back</h2>
+                    <p class="modal-description">Sign in to access your saved locations and preferences</p>
+                    <button class="modal-close">&times;</button>
+                </div>
+                
+                <div class="auth-tabs">
+                    <div class="tabs-header">
+                        <button class="tab-button active" data-tab="login">Login</button>
+                        <button class="tab-button" data-tab="signup">Sign Up</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="loginTab">
+                        <form id="loginForm" class="auth-form">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" placeholder="your.email@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" placeholder="••••••••" required>
+                            </div>
+                            <div class="form-actions">
+                                <a href="#" class="forgot-password car-mode">Forgot password?</a>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit" class="submit-button car-mode">Login</button>
+                                <button type="button" class="guest-login-button">Continue as Guest</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="tab-content" id="signupTab">
+                        <!-- Step 1: Basic Info -->
+                        <form id="signupForm" class="auth-form signup-step active" data-step="1">
+                            <div class="form-group">
+                                <label for="signup-name">Full Name</label>
+                                <input type="text" id="signup-name" placeholder="John Doe" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" placeholder="your.email@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" placeholder="••••••••" required>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit" class="submit-button car-mode">Next: Add Your Locations</button>
+                                <button type="button" class="guest-login-button">Continue as Guest</button>
+                            </div>
+                        </form>
+                        
+                        <!-- Step 2: Locations -->
+                        <div class="auth-form signup-step" data-step="2">
+                            <div class="form-group">
+                                <label>Home Address</label>
+                                <div class="input-with-icon">
+                                    <div class="input-icon car-mode">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                    <input type="text" placeholder="Enter your home address">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Work Address</label>
+                                <div class="input-with-icon">
+                                    <div class="input-icon car-mode">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                    <input type="text" placeholder="Enter your work address">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>School/University Address</label>
+                                <div class="input-with-icon">
+                                    <div class="input-icon car-mode">
+                                        <i class="fas fa-graduation-cap"></i>
+                                    </div>
+                                    <input type="text" placeholder="Enter your school address">
+                                </div>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="button" class="back-button">Back</button>
+                                <button type="button" class="next-button car-mode">Next: Preferences</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Preferences -->
+                        <div class="auth-form signup-step" data-step="3">
+                            <div class="form-group">
+                                <label>Preferred Transport Mode</label>
+                                <div class="transport-options">
+                                    <div class="transport-option car-selected">
+                                        <div class="transport-icon">
+                                            <i class="fas fa-car"></i>
+                                        </div>
+                                        <span>Car</span>
+                                    </div>
+                                    <div class="transport-option">
+                                        <div class="transport-icon">
+                                            <i class="fas fa-bus"></i>
+                                        </div>
+                                        <span>Public</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Notification Preferences</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="traffic-alerts" checked>
+                                        <label for="traffic-alerts">Traffic alerts</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="schedule-changes" checked>
+                                        <label for="schedule-changes">Schedule changes</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="promotions">
+                                        <label for="promotions">Promotions and offers</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="button" class="back-button">Back</button>
+                                <button type="button" class="complete-button car-mode">Complete Sign Up</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container">
+        <!-- Toasts will be added here dynamically -->
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

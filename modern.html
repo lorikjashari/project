@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kosovo Transit AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --ai-color: #10b981;
+            --surface: #ffffff;
+            --background: #f8fafc;
+            --text: #0f172a;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius: 16px;
+            --glow: 0 0 20px rgba(59, 130, 246, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Animated background glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, 
+                rgba(59, 130, 246, 0.1) 0%,
+                rgba(16, 185, 129, 0.05) 25%,
+                transparent 50%);
+            animation: pulse 8s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        .app {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            margin-bottom: 1.5rem;
+            position: sticky;
+            top: 0;
+            background: var(--background);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--ai-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            position: relative;
+        }
+
+        .logo::after {
+            content: 'AI';
+            position: absolute;
+            top: -8px;
+            right: -24px;
+            font-size: 0.8rem;
+            background: var(--ai-color);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .search-bar {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 0.875rem;
+            box-shadow: var(--shadow), var(--glow);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 3.5rem;
+            z-index: 99;
+        }
+
+        .search-bar:focus-within {
+            box-shadow: 0 0 0 2px var(--primary), var(--glow);
+        }
+
+        .search-bar i {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        .search-input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 1rem;
+            color: var(--text);
+            background: transparent;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .ai-features {
+            margin-bottom: 1.5rem;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .ai-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow), var(--glow);
+            transition: transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .ai-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                transparent 0%,
+                rgba(16, 185, 129, 0.1) 50%,
+                transparent 100%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .ai-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--ai-color);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .ai-title {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .ai-description {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .ai-status {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--ai-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .ticket-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .ticket-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .ticket-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .ticket-type {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket-duration {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .action-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 0.875rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .action-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .action-label {
+            font-size: 0.875rem;
+            color: var(--text);
+        }
+
+        .nav-bar {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 0.75rem;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: var(--shadow);
+            margin-top: auto;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item {
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:active {
+            background: var(--background);
+            transform: scale(0.95);
+        }
+
+        .nav-item i {
+            font-size: 1.25rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface: #1e293b;
+                --background: #0f172a;
+                --text: #f8fafc;
+                --text-light: #94a3b8;
+                --border: #334155;
+                --glow: 0 0 20px rgba(16, 185, 129, 0.1);
+            }
+
+            .search-input {
+                color: var(--text);
+            }
+            
+            .search-input::placeholder {
+                color: var(--text-light);
+                opacity: 0.7;
+            }
+        }
+
+        /* Tablet and Desktop Styles */
+        @media (min-width: 768px) {
+            .app {
+                max-width: 720px;
+                padding: 1.5rem;
+            }
+
+            .header {
+                padding: 1rem 0;
+                margin-bottom: 2rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .search-bar {
+                padding: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .ai-features {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.5rem;
+            }
+
+            .ticket-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 1rem;
+            }
+
+            .quick-actions {
+                gap: 1rem;
+            }
+
+            .action-card {
+                padding: 1rem;
+            }
+
+            .nav-bar {
+                padding: 1rem;
+            }
+
+            .nav-item {
+                font-size: 0.875rem;
+                padding: 0.75rem;
+            }
+        }
+
+        /* Large Desktop Styles */
+        @media (min-width: 1024px) {
+            .app {
+                max-width: 960px;
+            }
+        }
+
+        /* Landscape Mode Optimizations */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .app {
+                padding: 0.75rem;
+            }
+
+            .header {
+                margin-bottom: 1rem;
+            }
+
+            .search-bar {
+                margin-bottom: 1rem;
+            }
+
+            .ai-features {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.75rem;
+            }
+
+            .ticket-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.75rem;
+            }
+
+            .quick-actions {
+                gap: 0.75rem;
+            }
+        }
+
+        /* Touch Device Optimizations */
+        @media (hover: none) {
+            .ai-card:hover,
+            .ticket-card:hover,
+            .action-card:hover {
+                transform: none;
+            }
+
+            .nav-item:hover {
+                background: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <div class="logo">Kosovo Transit</div>
+            <i class="fas fa-user" style="color: var(--primary); font-size: 1.25rem;"></i>
+        </header>
+
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" class="search-input" placeholder="Where do you want to go?">
+        </div>
+
+        <section class="ai-features">
+            <div class="ai-card">
+                <div class="ai-header">
+                    <div class="ai-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="ai-title">Smart Route Planning</div>
+                </div>
+                <div class="ai-description">AI-powered route optimization based on real-time traffic, weather, and historical data</div>
+                <div class="ai-status">Live</div>
+            </div>
+
+            <div class="ai-card">
+                <div class="ai-header">
+                    <div class="ai-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="ai-title">Occupancy Prediction</div>
+                </div>
+                <div class="ai-description">Predicts bus occupancy levels to help you choose the least crowded route</div>
+                <div class="ai-status">Beta</div>
+            </div>
+
+            <div class="ai-card">
+                <div class="ai-header">
+                    <div class="ai-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="ai-title">Smart Scheduling</div>
+                </div>
+                <div class="ai-description">Dynamic schedule adjustments based on traffic patterns and passenger demand</div>
+                <div class="ai-status">Coming Soon</div>
+            </div>
+        </section>
+
+        <section class="ticket-section">
+            <h2 class="section-title">Buy Tickets</h2>
+            <div class="ticket-grid">
+                <div class="ticket-card">
+                    <div class="ticket-type">Single Ride</div>
+                    <div class="ticket-price">€0.50</div>
+                    <div class="ticket-duration">One journey</div>
+                </div>
+                <div class="ticket-card">
+                    <div class="ticket-type">Day Pass</div>
+                    <div class="ticket-price">€2.00</div>
+                    <div class="ticket-duration">24 hours</div>
+                </div>
+                <div class="ticket-card">
+                    <div class="ticket-type">Weekly</div>
+                    <div class="ticket-price">€10.00</div>
+                    <div class="ticket-duration">7 days</div>
+                </div>
+                <div class="ticket-card">
+                    <div class="ticket-type">Monthly</div>
+                    <div class="ticket-price">€35.00</div>
+                    <div class="ticket-duration">30 days</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="quick-actions">
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="action-label">Live Map</div>
+            </div>
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-bus"></i>
+                </div>
+                <div class="action-label">Schedule</div>
+            </div>
+            <div class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="action-label">Alerts</div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <a href="#" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-map"></i>
+                <span>Map</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Tickets</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <script>
+        // AI Feature Status Updates
+        function updateAIStatus() {
+            const statuses = document.querySelectorAll('.ai-status');
+            statuses.forEach(status => {
+                if (status.textContent === 'Live') {
+                    status.style.animation = 'pulse 2s infinite';
+                }
+            });
+        }
+
+        // Initialize AI features
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAIStatus();
+
+            // Prevent double-tap zoom on mobile
+            document.addEventListener('touchend', function(event) {
+                event.preventDefault();
+            }, { passive: false });
+
+            // Add touch feedback
+            const touchElements = document.querySelectorAll('.ai-card, .ticket-card, .action-card, .nav-item');
+            touchElements.forEach(element => {
+                element.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                });
+                element.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+
+            // Handle orientation changes
+            window.addEventListener('orientationchange', function() {
+                // Add any orientation-specific adjustments here
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html> 

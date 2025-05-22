@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Kosovo Transit</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 425px;
+            background-color: var(--color-white);
+            border-radius: var(--radius-2xl);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .auth-header {
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(to bottom right, var(--color-slate-50), var(--color-slate-100));
+        }
+
+        .auth-logo {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--color-white);
+            background: linear-gradient(to bottom right, #60a5fa, #2563eb);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+        .auth-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #3b82f6, #4f46e5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .auth-subtitle {
+            color: var(--color-slate-500);
+            font-size: 0.875rem;
+        }
+
+        .auth-form {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--color-slate-700);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--color-slate-200);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            transition: var(--transition-normal);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-blue-500);
+            box-shadow: 0 0 0 3px var(--color-blue-100);
+        }
+
+        .password-requirements {
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--color-slate-500);
+        }
+
+        .password-requirements ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 0.25rem;
+        }
+
+        .password-requirements li {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .password-requirements li i {
+            font-size: 0.75rem;
+        }
+
+        .password-requirements li.valid {
+            color: var(--color-emerald-500);
+        }
+
+        .password-requirements li.invalid {
+            color: var(--color-slate-400);
+        }
+
+        .terms {
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--color-slate-500);
+        }
+
+        .terms a {
+            color: var(--color-blue-500);
+            text-decoration: none;
+        }
+
+        .terms a:hover {
+            text-decoration: underline;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 0.875rem;
+            background-color: var(--color-blue-500);
+            color: var(--color-white);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+
+        .submit-button:hover {
+            background-color: var(--color-blue-600);
+        }
+
+        .auth-footer {
+            padding: 1.5rem;
+            text-align: center;
+            border-top: 1px solid var(--color-slate-200);
+        }
+
+        .auth-footer p {
+            color: var(--color-slate-500);
+            font-size: 0.875rem;
+        }
+
+        .auth-footer a {
+            color: var(--color-blue-500);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .social-signup {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-button {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--color-slate-200);
+            border-radius: var(--radius-lg);
+            background-color: var(--color-white);
+            color: var(--color-slate-700);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .social-button:hover {
+            background-color: var(--color-slate-50);
+        }
+
+        .social-button i {
+            font-size: 1.25rem;
+        }
+
+        @media (max-width: 640px) {
+            .auth-page {
+                padding: 1rem;
+            }
+
+            .auth-header {
+                padding: 1.5rem;
+            }
+
+            .auth-logo {
+                width: 3.5rem;
+                height: 3.5rem;
+                font-size: 1.25rem;
+            }
+
+            .auth-title {
+                font-size: 1.25rem;
+            }
+
+            .auth-form {
+                padding: 1.5rem;
+            }
+
+            .social-signup {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-header">
+                <div class="auth-logo">
+                    <img src="img/logo.png" alt="Kosovo Transit Logo" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Join Kosovo Transit today</p>
+            </div>
+
+            <form class="auth-form" action="signup.php" method="POST">
+                <div class="form-group">
+                    <label for="fullname">Full Name</label>
+                    <input type="text" id="fullname" name="fullname" placeholder="John Doe" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <div class="password-requirements">
+                        <p>Password must contain:</p>
+                        <ul>
+                            <li class="invalid" id="length"><i class="fas fa-circle"></i> At least 8 characters</li>
+                            <li class="invalid" id="uppercase"><i class="fas fa-circle"></i> One uppercase letter</li>
+                            <li class="invalid" id="lowercase"><i class="fas fa-circle"></i> One lowercase letter</li>
+                            <li class="invalid" id="number"><i class="fas fa-circle"></i> One number</li>
+                            <li class="invalid" id="special"><i class="fas fa-circle"></i> One special character</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirm-password" placeholder="••••••••" required>
+                </div>
+
+                <div class="terms">
+                    By signing up, you agree to our <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>
+                </div>
+
+                <button type="submit" class="submit-button">Create Account</button>
+
+                <div class="social-signup">
+                    <button type="button" class="social-button">
+                        <i class="fab fa-google"></i>
+                        <span>Sign up with Google</span>
+                    </button>
+                    <button type="button" class="social-button">
+                        <i class="fab fa-facebook-f"></i>
+                        <span>Sign up with Facebook</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html">Sign in</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password validation
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm-password');
+        const requirements = {
+            length: document.getElementById('length'),
+            uppercase: document.getElementById('uppercase'),
+            lowercase: document.getElementById('lowercase'),
+            number: document.getElementById('number'),
+            special: document.getElementById('special')
+        };
+
+        password.addEventListener('input', function() {
+            const value = this.value;
+            
+            // Check length
+            if (value.length >= 8) {
+                requirements.length.classList.add('valid');
+                requirements.length.classList.remove('invalid');
+            } else {
+                requirements.length.classList.add('invalid');
+                requirements.length.classList.remove('valid');
+            }
+
+            // Check uppercase
+            if (/[A-Z]/.test(value)) {
+                requirements.uppercase.classList.add('valid');
+                requirements.uppercase.classList.remove('invalid');
+            } else {
+                requirements.uppercase.classList.add('invalid');
+                requirements.uppercase.classList.remove('valid');
+            }
+
+            // Check lowercase
+            if (/[a-z]/.test(value)) {
+                requirements.lowercase.classList.add('valid');
+                requirements.lowercase.classList.remove('invalid');
+            } else {
+                requirements.lowercase.classList.add('invalid');
+                requirements.lowercase.classList.remove('valid');
+            }
+
+            // Check number
+            if (/[0-9]/.test(value)) {
+                requirements.number.classList.add('valid');
+                requirements.number.classList.remove('invalid');
+            } else {
+                requirements.number.classList.add('invalid');
+                requirements.number.classList.remove('valid');
+            }
+
+            // Check special character
+            if (/[!@#$%^&*]/.test(value)) {
+                requirements.special.classList.add('valid');
+                requirements.special.classList.remove('invalid');
+            } else {
+                requirements.special.classList.add('invalid');
+                requirements.special.classList.remove('valid');
+            }
+        });
+
+        // Confirm password validation
+        confirmPassword.addEventListener('input', function() {
+            if (this.value === password.value) {
+                this.setCustomValidity('');
+            } else {
+                this.setCustomValidity('Passwords do not match');
+            }
+        });
+    </script>
+</body>
+</html> 
