@@ -8,9 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body, html {
       margin: 0;
       padding: 0;
@@ -28,6 +26,12 @@
       bottom: 0;
       height: 100vh;
       z-index: 1000;
+      transition: transform 0.5s cubic-bezier(.4,2,.6,1), filter 0.5s;
+      will-change: transform;
+    }
+    .map-curve {
+      transform: perspective(900px) rotateX(18deg) scale(1.08);
+      filter: brightness(1.05) saturate(1.1);
     }
     #search-container {
       position: fixed;
@@ -216,46 +220,6 @@
     .start-route:hover {
       background: #0077cc;
     }
-    #routeInfoBox {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      padding: 20px 24px;
-      border-radius: 16px;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.25);
-      z-index: 1800;
-      max-width: 350px;
-      width: 90%;
-      display: none;
-      font-size: 1rem;
-      color: #333;
-      text-align: center;
-    }
-    #routeInfoBox b {
-      font-weight: 700;
-      font-size: 1.15rem;
-    }
-    #routeInfoBox .info-row {
-      margin: 8px 0;
-    }
-    #endRouteBtn {
-      margin-top: 14px;
-      padding: 12px;
-      width: 100%;
-      background: #d9534f;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 1.1rem;
-      transition: background-color 0.3s ease;
-    }
-    #endRouteBtn:hover {
-      background-color: #c9302c;
-    }
     .custom-attribution {
       position: fixed;
       right: 12px;
@@ -285,6 +249,61 @@
       padding: 2px;
       display: inline-block;
     }
+    #directionBox {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 2001;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+      padding: 24px 32px 20px 32px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      min-width: 220px;
+      max-width: 90vw;
+      font-size: 1.18rem;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      color: #1a2a3a;
+      text-align: center;
+      gap: 10px;
+    }
+    #directionIcon {
+      font-size: 3.2em;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    #directionDistance {
+      font-size: 1.45em;
+      color: #0077cc;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    #directionInstruction {
+      font-size: 1.08em;
+      color: #444;
+      font-weight: 500;
+      margin-bottom: 0;
+      margin-top: 0;
+    }
+    #endRouteBtn {
+      margin-top: 14px;
+      padding: 12px;
+      width: 100%;
+      background: #d9534f;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
+    }
+    #endRouteBtn:hover {
+      background-color: #c9302c;
+    }
     @media (max-width: 800px) {
       .route-options {
         max-width: 99vw;
@@ -309,6 +328,19 @@
         padding: 10px 8px;
         height: 38px;
       }
+      #directionBox {
+        top: 10px;
+        right: 10px;
+        padding: 14px 10px 12px 10px;
+        border-radius: 10px;
+        min-width: 140px;
+      }
+      #directionIcon {
+        font-size: 2.1em;
+      }
+      #directionDistance {
+        font-size: 1.1em;
+      }
     }
     @media (max-width: 600px) {
       #search-container {
@@ -323,7 +355,7 @@
         padding: 12px 10px;
         font-size: 1rem;
       }
-      .route-options, #routeInfoBox {
+      .route-options {
         left: 2vw;
         transform: none;
         width: auto;
@@ -368,6 +400,19 @@
         padding: 8px 4px;
         height: 34px;
       }
+      #directionBox {
+        top: 6px;
+        right: 4px;
+        padding: 8px 4px 8px 4px;
+        border-radius: 8px;
+        min-width: 90px;
+      }
+      #directionIcon {
+        font-size: 1.5em;
+      }
+      #directionDistance {
+        font-size: 0.9em;
+      }
     }
   </style>
 </head>
@@ -404,10 +449,10 @@
     </div>
     <button class="start-route" id="startRouteBtn">Start Route</button>
   </div>
-  <div id="routeInfoBox">
-    <div class="info-row"><b>Distance:</b> <span id="routeDistance">0 km</span></div>
-    <div class="info-row"><b>Duration:</b> <span id="routeDuration">0 min</span></div>
-    <div class="info-row"><b>Next Street:</b> <span id="routeNextStreet">-</span></div>
+  <div id="directionBox">
+    <div id="directionIcon"></div>
+    <div id="directionDistance"></div>
+    <div id="directionInstruction"></div>
     <button id="endRouteBtn">End Route</button>
   </div>
   <div class="custom-attribution">
@@ -422,31 +467,28 @@
     const routeOptions = document.getElementById('routeOptions');
     const startRouteBtn = document.getElementById('startRouteBtn');
     const locateBtn = document.getElementById('locate-btn');
-    const routeInfoBox = document.getElementById('routeInfoBox');
-    const routeDistance = document.getElementById('routeDistance');
-    const routeDuration = document.getElementById('routeDuration');
-    const routeNextStreet = document.getElementById('routeNextStreet');
+    const mapDiv = document.getElementById('map');
+    const directionBox = document.getElementById('directionBox');
+    const directionIcon = document.getElementById('directionIcon');
+    const directionDistance = document.getElementById('directionDistance');
+    const directionInstruction = document.getElementById('directionInstruction');
     const endRouteBtn = document.getElementById('endRouteBtn');
-
     const map = L.map('map', {
       attributionControl: false
     }).setView([42.6629, 21.1655], 10);
-
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: ''
     }).addTo(map);
-
     let userLocation = null;
     let selectedDestination = null;
     let routingControl = null;
     let currentRouteType = 'fastest';
-
-    const routeColors = {
-      fastest: '#0077ff',
-      shortest: '#28a745',
-      scenic: '#eab308'
-    };
-
+    let userMarker = null;
+    let directionMarker = null;
+    let gpsPointerMarker = null;
+    let gpsWatchId = null;
+    let routeInstructions = [];
+    let currentInstructionIndex = 0;
     const destinations = [
       { name: "Pristina", lat: 42.6629, lon: 21.1655, street: "Rruga Prishtinë" },
       { name: "Prizren", lat: 42.2167, lon: 20.7414, street: "Rruga Bulevardi" },
@@ -454,7 +496,6 @@
       { name: "Gjakova", lat: 42.3829, lon: 20.4303, street: "Rruga Dëshmorët" },
       { name: "Mitrovica", lat: 42.8833, lon: 20.8667, street: "Rruga Mitrovicë" }
     ];
-
     searchInput.addEventListener('input', () => {
       const query = searchInput.value.trim().toLowerCase();
       dropdown.innerHTML = '';
@@ -482,34 +523,17 @@
           dropdown.style.display = 'none';
           setDefaultRouteType();
           showRouteOptions();
-          if (userLocation) {
-            startRouting(userLocation, selectedDestination);
-            document.getElementById('search-container').style.display = 'none';
-          }
-        });
-        item.addEventListener('click', () => {
-          selectedDestination = dest;
-          searchInput.value = dest.name;
-          dropdown.style.display = 'none';
-          setDefaultRouteType();
-          showRouteOptions();
-          if (userLocation) {
-            startRouting(userLocation, selectedDestination);
-            document.getElementById('search-container').style.display = 'none';
-          }
         });
         item.appendChild(icon);
         dropdown.appendChild(item);
       });
       dropdown.style.display = 'block';
     });
-
     document.addEventListener('click', e => {
       if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
         dropdown.style.display = 'none';
       }
     });
-
     function setDefaultRouteType() {
       currentRouteType = 'fastest';
       routeOptions.querySelectorAll('.route-option').forEach(opt => {
@@ -520,27 +544,20 @@
         }
       });
     }
-
     function showRouteOptions() {
       routeOptions.style.display = 'flex';
     }
     function hideRouteOptions() {
       routeOptions.style.display = 'none';
     }
-
     routeOptions.style.display = 'none';
-
     routeOptions.querySelectorAll('.route-option').forEach(el => {
       el.addEventListener('click', () => {
         routeOptions.querySelectorAll('.route-option').forEach(opt => opt.classList.remove('selected'));
         el.classList.add('selected');
         currentRouteType = el.dataset.type;
-        if (userLocation && selectedDestination) {
-          startRouting(userLocation, selectedDestination);
-        }
       });
     });
-
     startRouteBtn.addEventListener('click', () => {
       if (!selectedDestination) {
         alert('Please select a destination first!');
@@ -554,7 +571,6 @@
       hideRouteOptions();
       document.getElementById('search-container').style.display = 'none';
     });
-
     locateBtn.addEventListener('click', () => {
       if (!navigator.geolocation) {
         alert("Geolocation not supported by your browser");
@@ -567,39 +583,37 @@
             lon: pos.coords.longitude
           };
           map.setView([userLocation.lat, userLocation.lon], 14);
-          if (userMarker) userMarker.setLatLng([userLocation.lat, userLocation.lon]);
-          else {
+          if (!userMarker) {
             userMarker = L.circleMarker([userLocation.lat, userLocation.lon], {
               radius: 6,
               color: '#0077ff',
               fillColor: '#3399ff',
               fillOpacity: 0.9,
               weight: 2
-            }).addTo(map).bindPopup('Your Location').openPopup();
-          }
-          if (selectedDestination) {
-            startRouting(userLocation, selectedDestination);
-            document.getElementById('search-container').style.display = 'none';
+            }).addTo(map).bindPopup('Your Location');
+          } else {
+            userMarker.setLatLng([userLocation.lat, userLocation.lon]);
           }
         },
         () => alert("Unable to retrieve your location")
       );
     });
-
-    let userMarker = null;
-
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
           map.setView([userLocation.lat, userLocation.lon], 14);
-          userMarker = L.circleMarker([userLocation.lat, userLocation.lon], {
-            radius: 6,
-            color: '#0077ff',
-            fillColor: '#3399ff',
-            fillOpacity: 0.9,
-            weight: 2
-          }).addTo(map).bindPopup('Your Location').openPopup();
+          if (!userMarker) {
+            userMarker = L.circleMarker([userLocation.lat, userLocation.lon], {
+              radius: 6,
+              color: '#0077ff',
+              fillColor: '#3399ff',
+              fillOpacity: 0.9,
+              weight: 2
+            }).addTo(map).bindPopup('Your Location');
+          } else {
+            userMarker.setLatLng([userLocation.lat, userLocation.lon]);
+          }
         },
         () => {
           map.setView([42.6629, 21.1655], 10);
@@ -608,134 +622,168 @@
     } else {
       map.setView([42.6629, 21.1655], 10);
     }
-
+    function getDirectionIcon(type, text) {
+      if (type === "Head" || /head/i.test(text)) return "⬆️";
+      if (/left/i.test(text)) return "⬅️";
+      if (/right/i.test(text)) return "➡️";
+      if (/circle|roundabout/i.test(text)) return "🌀";
+      if (/arriv/i.test(text)) return "🏁";
+      if (/continue/i.test(text)) return "⬆️";
+      if (/merge/i.test(text)) return "↗️";
+      if (/keep right/i.test(text)) return "↗️";
+      if (/keep left/i.test(text)) return "↖️";
+      if (/exit/i.test(text)) return "⏩";
+      if (/fork/i.test(text)) return "⤴️";
+      return "⬆️";
+    }
+    function showDirectionBox(instruction, distance) {
+      directionBox.style.display = 'flex';
+      directionIcon.textContent = getDirectionIcon(instruction.type, instruction.text);
+      directionDistance.textContent = distance;
+      directionInstruction.textContent = instruction.text;
+    }
+    function hideDirectionBox() {
+      directionBox.style.display = 'none';
+    }
     function startRouting(start, destination) {
       if (routingControl) {
         map.removeControl(routingControl);
         routingControl = null;
       }
-
-      let router;
-      let lineColor = routeColors[currentRouteType] || '#0077ff';
-
-      if (currentRouteType === 'fastest') {
-        router = L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1',
-          profile: 'car'
-        });
-      } else if (currentRouteType === 'shortest') {
-        router = L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1',
-          profile: 'car',
-          routingOptions: {
-            overview: 'full',
-            alternatives: false,
-            steps: true,
-            geometries: 'polyline'
-          },
-          useShortestOption: true
-        });
-      } else if (currentRouteType === 'scenic') {
-        router = L.Routing.osrmv1({
-          serviceUrl: 'https://routing.openstreetmap.de/routed-bike/route/v1',
-          profile: 'bike'
-        });
-      } else {
-        router = L.Routing.osrmv1({
-          serviceUrl: 'https://router.project-osrm.org/route/v1',
-          profile: 'car'
-        });
+      if (gpsPointerMarker) {
+        map.removeLayer(gpsPointerMarker);
+        gpsPointerMarker = null;
       }
-
+      if (userMarker) {
+        map.removeLayer(userMarker);
+        userMarker = null;
+      }
+      mapDiv.classList.add('map-curve');
+      map.setView([start.lat, start.lon], 20, { animate: true });
       routingControl = L.Routing.control({
         waypoints: [
           L.latLng(start.lat, start.lon),
           L.latLng(destination.lat, destination.lon)
         ],
         routeWhileDragging: false,
-        router: router,
-        lineOptions: {
-          styles: [{color: lineColor, weight: 7, opacity: 0.85}]
-        },
+        profile: currentRouteType === 'fastest' ? 'car' : 'car',
         createMarker: function(i, wp) {
           if (i === 0) {
-            return L.marker(wp.latLng, { draggable: false }).bindPopup('Start Point').openPopup();
+            return null;
           } else if (i === 1) {
             return L.marker(wp.latLng, { draggable: false }).bindPopup('Destination').openPopup();
           }
-        }
+        },
+        show: false,
+        itinerary: { show: false }
       }).addTo(map);
-
-      routeInfoBox.style.display = 'block';
-
       routingControl.on('routesfound', function(e) {
         const routes = e.routes;
         if (routes.length > 0) {
-          const summary = routes[0].summary;
-          const totalDistanceKm = (summary.totalDistance / 1000).toFixed(2);
-          const totalTimeMin = Math.ceil(summary.totalTime / 60);
-          routeDistance.textContent = `${totalDistanceKm} km`;
-          routeDuration.textContent = `${totalTimeMin} min`;
-          let nextStreet = '-';
+          routeInstructions = [];
+          currentInstructionIndex = 0;
           if (routes[0].instructions && routes[0].instructions.length > 0) {
-            for (const instr of routes[0].instructions) {
-              if (instr.text && instr.text.length > 0) {
-                nextStreet = instr.text;
-                break;
-              }
+            routeInstructions = routes[0].instructions;
+          } else if (routes[0].segments && routes[0].segments.length > 0) {
+            for (const seg of routes[0].segments) {
+              if (seg.steps) routeInstructions = routeInstructions.concat(seg.steps);
             }
           }
-          routeNextStreet.textContent = nextStreet;
+          if (routeInstructions.length > 0) {
+            showDirectionBox(routeInstructions[0], formatDistance(routeInstructions[0].distance));
+          }
         }
       });
-
-      routingControl.on('routeselected', function(e) {
-      });
+      if (navigator.geolocation) {
+        if (gpsWatchId) {
+          navigator.geolocation.clearWatch(gpsWatchId);
+        }
+        gpsWatchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            if (directionMarker) {
+              directionMarker.setLatLng([userLocation.lat, userLocation.lon]);
+            } else {
+              directionMarker = L.marker([userLocation.lat, userLocation.lon], {
+                icon: L.icon({
+                  iconUrl: 'direction.png',
+                  iconSize: [48, 48],
+                  iconAnchor: [24, 24]
+                })
+              }).addTo(map);
+            }
+            if (routeInstructions.length > 0) {
+              for (let i = currentInstructionIndex; i < routeInstructions.length; i++) {
+                const instr = routeInstructions[i];
+                if (instr.latLng) {
+                  const d = map.distance([userLocation.lat, userLocation.lon], instr.latLng);
+                  if (d < 30) {
+                    currentInstructionIndex = i + 1;
+                  }
+                }
+              }
+              if (currentInstructionIndex < routeInstructions.length) {
+                const instr = routeInstructions[currentInstructionIndex];
+                showDirectionBox(instr, formatDistance(instr.distance));
+              } else {
+                showDirectionBox({ type: "Arrive", text: "You have arrived!", distance: "" }, "");
+                if (gpsWatchId) {
+                  navigator.geolocation.clearWatch(gpsWatchId);
+                  gpsWatchId = null;
+                }
+              }
+            }
+          },
+          (err) => {},
+          { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+        );
+      }
     }
-
+    function formatDistance(meters) {
+      if (!meters && meters !== 0) return "";
+      if (meters < 1000) return `${Math.round(meters)} m`;
+      return `${(meters / 1000).toFixed(2)} km`;
+    }
     endRouteBtn.addEventListener('click', () => {
       if (routingControl) {
         map.removeControl(routingControl);
         routingControl = null;
       }
-      routeInfoBox.style.display = 'none';
+      if (gpsWatchId) {
+        navigator.geolocation.clearWatch(gpsWatchId);
+        gpsWatchId = null;
+      }
+      if (gpsPointerMarker) {
+        map.removeLayer(gpsPointerMarker);
+        gpsPointerMarker = null;
+      }
+      if (directionMarker) {
+        map.removeLayer(directionMarker);
+        directionMarker = null;
+      }
+      mapDiv.classList.remove('map-curve');
+      hideDirectionBox();
       routeOptions.style.display = 'none';
       document.getElementById('search-container').style.display = 'block';
       searchInput.value = '';
       selectedDestination = null;
       dropdown.style.display = 'none';
-    });
-
-    setDefaultRouteType();
-    hideRouteOptions();
-
-    function tryAutoRoute() {
-      if (userLocation && selectedDestination) {
-        startRouting(userLocation, selectedDestination);
-        document.getElementById('search-container').style.display = 'none';
-      }
-    }
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          userLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-          map.setView([userLocation.lat, userLocation.lon], 14);
+      if (userLocation) {
+        if (!userMarker) {
           userMarker = L.circleMarker([userLocation.lat, userLocation.lon], {
             radius: 6,
             color: '#0077ff',
             fillColor: '#3399ff',
             fillOpacity: 0.9,
             weight: 2
-          }).addTo(map).bindPopup('Your Location').openPopup();
-          tryAutoRoute();
-        },
-        () => {
-          map.setView([42.6629, 21.1655], 10);
+          }).addTo(map).bindPopup('Your Location');
+        } else {
+          userMarker.setLatLng([userLocation.lat, userLocation.lon]);
         }
-      );
-    }
-
+      }
+    });
+    setDefaultRouteType();
+    hideRouteOptions();
   </script>
 </body>
 </html>
